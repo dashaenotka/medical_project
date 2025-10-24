@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Медицинские данные</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>🏥 Медицинская карта</h1>
+        
+        {% if message %}
+            <div class="message">{{ message }}</div>
+        {% endif %}
+        
+        <!-- Форма для ввода данных -->
+        <form method="post">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label>ФИО пациента:</label>
+                <input type="text" name="name" required placeholder="Иванов Иван Иванович">
+            </div>
+            
+            <div class="form-group">
+                <label>Рост (см):</label>
+                <input type="number" name="height" required placeholder="175">
+            </div>
+            
+            <div class="form-group">
+                <label>Давление:</label>
+                <input type="text" name="pressure" required placeholder="120/80">
+            </div>
+            
+            <div class="form-group">
+                <label>Глюкоза (ммоль/л):</label>
+                <input type="number" name="glucose" required placeholder="5.5" step="0.1">
+            </div>
+            <div class="form-group">
+                <label>Возраст (лет):</label>
+                <input type="number" name="age" required placeholder="15">
+            </div>
+            
+            <button type="submit">💾 Сохранить пациента</button>
+        </form>
+
+        <!-- Форма для загрузки файла -->
+         <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="form-group">
+                <label>Загрузить JSON файл:</label>
+                <input type="file" name="json_file" accept=".json" required>
+            </div>
+            <button type="submit">📁 Загрузить файл</button>
+        </form>
+        
+        <hr>
+        
+        <h2>👥 Список пациентов:</h2>
+        
+        {% if patients %}
+            <div class="patients-list">
+                {% for patient in patients %}
+                    <div class="patient-item">
+                        <h3>👤 {{ patient.name }}</h3>
+                        <ul>
+                            <li>📏 Рост: {{ patient.height }} см</li>
+                            <li>💓 Давление: {{ patient.pressure }}</li>
+                            <li>🩸 Глюкоза: {{ patient.glucose }} ммоль/л</li>
+                            <li>🩸Возраст: {{ patient.age }} лет</li>
+                        </ul>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p>Пациентов пока нет</p>
+        {% endif %}
+    </div>
+</body>
+</html>
