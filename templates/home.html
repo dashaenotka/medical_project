@@ -9,7 +9,9 @@
         <h1>🏥 Медицинская карта</h1>
         
         {% if message %}
-            <div class="message">{{ message }}</div>
+            <div class="message {% if '✅' in message %}success{% else %}error{% endif %}">
+                {{ message }}
+            </div>
         {% endif %}
         
         <!-- Форма для ввода данных -->
@@ -35,25 +37,68 @@
                 <label>Глюкоза (ммоль/л):</label>
                 <input type="number" name="glucose" required placeholder="5.5" step="0.1">
             </div>
+            
             <div class="form-group">
                 <label>Возраст (лет):</label>
                 <input type="number" name="age" required placeholder="15">
             </div>
+
+            <!-- Выбор куда сохранять -->
+            <div class="form-group">
+                <label>Сохранить в:</label>
+                <div class="radio-group">
+                    <div class="radio-option">
+                        <input type="radio" id="json" name="save_to" value="json" checked>
+                        <label for="json">📄 JSON файл</label>
+                    </div>
+                    <div class="radio-option">
+                        <input type="radio" id="db" name="save_to" value="db">
+                        <label for="db">🗃️ Базу данных</label>
+                    </div>
+                </div>
+            </div>
             
-            <button type="submit">💾 Сохранить пациента</button>
+            <button type="submit" class="btn-primary">💾 Сохранить пациента</button>
         </form>
 
+        <hr>
+
         <!-- Форма для загрузки файла -->
-         <form method="post" enctype="multipart/form-data">
+        <form method="post" enctype="multipart/form-data">
             {% csrf_token %}
             <div class="form-group">
                 <label>Загрузить JSON файл:</label>
                 <input type="file" name="json_file" accept=".json" required>
             </div>
-            <button type="submit">📁 Загрузить файл</button>
+            <button type="submit" class="btn-secondary">📁 Загрузить файл</button>
         </form>
         
         <hr>
+        
+        <!-- Переключение между источниками -->
+        <div class="source-buttons">
+            <h4>Показать данные из:</h4>
+            <a href="?source=json" class="btn-source btn-json {% if data_source == 'json' %}active{% endif %}">
+                📄 JSON файла
+            </a>
+            <a href="?source=db" class="btn-source btn-db {% if data_source == 'db' %}active{% endif %}">
+                🗃️ Базы данных
+            </a>
+            
+            <div class="current-source">
+                Сейчас показаны данные из: 
+                <strong>{% if data_source == 'json' %}JSON файла{% else %}Базы данных{% endif %}</strong>
+            </div>
+        </div>
+
+        <!-- AJAX поиск (только для БД) -->
+        {% if data_source == 'db' %}
+        <div class="form-group">
+            <label>Поиск по имени (AJAX):</label>
+            <input type="text" id="searchInput" placeholder="Введите имя для поиска...">
+            <div id="searchResults"></div>
+        </div>
+        {% endif %}
         
         <h2>👥 Список пациентов:</h2>
         
@@ -66,14 +111,106 @@
                             <li>📏 Рост: {{ patient.height }} см</li>
                             <li>💓 Давление: {{ patient.pressure }}</li>
                             <li>🩸 Глюкоза: {{ patient.glucose }} ммоль/л</li>
-                            <li>🩸Возраст: {{ patient.age }} лет</li>
+                            <li>🎂 Возраст: {{ patient.age }} лет</li>
+                            
+                            <li class="source-info">
+                                {% if patient.from_db %}
+                                    🗃️ Из базы данных 
+                                    <!-- Кнопки для записей из БД -->
+                                    <div class="patient-actions">
+                                        <button class="btn-delete" onclick="deletePatient({{ patient.id }})">🗑️ Удалить</button>
+                                        <button class="btn-edit" onclick="editPatient({{ patient.id }})">✏️ Редактировать</button>
+                                    </div>
+                                {% else %}
+                                    📁 Из JSON файла
+                                {% endif %}
+                            </li>
                         </ul>
                     </div>
                 {% endfor %}
             </div>
         {% else %}
-            <p>Пациентов пока нет</p>
+            <div class="no-patients">
+                {% if data_source == 'json' %}
+                    📁 В JSON файле пациентов пока нет
+                {% else %}
+                    🗃️ В базе данных пациентов пока нет
+                {% endif %}
+            </div>
         {% endif %}
     </div>
+
+    <script>
+        // AJAX поиск
+        document.getElementById('searchInput')?.addEventListener('input', function() {
+            const query = this.value;
+            if (query.length > 2) {
+                fetch(`/search/?q=${query}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        const results = document.getElementById('searchResults');
+                        results.innerHTML = '';
+                        data.patients.forEach(patient => {
+                            results.innerHTML += `
+                                <div class="patient-item">
+                                    <h4>${patient.name}</h4>
+                                    <p>Рост: ${patient.height}см | Возраст: ${patient.age}</p>
+                                </div>
+                            `;
+                        });
+                    });
+            }
+        });
+
+        // Удаление пациента
+        function deletePatient(patientId) {
+            if (confirm('Удалить этого пациента?')) {
+                fetch(`/patient/${patientId}/delete/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}',
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert('Ошибка при удалении');
+                    }
+                });
+            }
+        }
+
+        // Редактирование пациента
+        function editPatient(patientId) {
+            const newName = prompt('Введите новое имя:');
+            if (newName) {
+                // Простая версия редактирования
+                const formData = new FormData();
+                formData.append('name', newName);
+                formData.append('height', '175'); // Здесь нужно получить реальные значения
+                formData.append('pressure', '120/80');
+                formData.append('glucose', '5.5');
+                formData.append('age', '30');
+                
+                fetch(`/patient/${patientId}/update/`, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}',
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert('Ошибка при редактировании');
+                    }
+                });
+            }
+        }
+    </script>
 </body>
 </html>

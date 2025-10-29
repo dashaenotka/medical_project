@@ -1,53 +1,78 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
+from django.http import JsonResponse
 import json
 import os
 from django.conf import settings
+from django.db import IntegrityError
+from .models import Patient
 
 def home(request):
+    # 1. Подготовка файла
     data_file = os.path.join(settings.MEDIA_ROOT, 'peoples.json')
+    os.makedirs(settings.MEDIA_ROOT, exist_ok=True)
     
     message = ""
     
-    # Загрузка существующих данных
+    # 2. Загрузка данных из JSON
     patients_data = []
-    if os.path.exists(data_file) and os.path.getsize(data_file) > 0:
+    if os.path.exists(data_file):
         try:
             with open(data_file, 'r', encoding='utf-8') as f:
                 patients_data = json.load(f)
-        except json.JSONDecodeError:
+        except:
             patients_data = []
     
-    # Обработка POST запросов
+    # 3. Загрузка данных из БД
+    db_patients = Patient.objects.all()
+    
+    # 4. Обработка СОХРАНЕНИЯ
     if request.method == 'POST':
-        # 1. Сохранение через форму
         if 'name' in request.POST:
             name = request.POST.get('name', '').strip()
             height = request.POST.get('height', '').strip()
             pressure = request.POST.get('pressure', '').strip()
             glucose = request.POST.get('glucose', '').strip()
             age = request.POST.get('age', '').strip()
+            save_to = request.POST.get('save_to', 'json')
             
             if name and height and pressure and glucose and age:
-                new_patient = {
-                    'name': name,
-                    'height': height,
-                    'pressure': pressure,
-                    'glucose': glucose,
-                    'age': age
-                }
-                patients_data.append(new_patient)
+                if save_to == 'json':
+                    # Сохраняем в JSON
+                    new_patient = {
+                        'name': name,
+                        'height': height,
+                        'pressure': pressure,
+                        'glucose': glucose,
+                        'age': age
+                    }
+                    patients_data.append(new_patient)
+                    
+                    with open(data_file, 'w', encoding='utf-8') as f:
+                        json.dump(patients_data, f, ensure_ascii=False, indent=2)
+                    
+                    message = "✅ Данные сохранены в JSON файл"
                 
-                with open(data_file, 'w', encoding='utf-8') as f:
-                    json.dump(patients_data, f, ensure_ascii=False, indent=2)
-                
-                message = "✅ Данные сохранены"
+                else:
+                    # Сохраняем в БД
+                    try:
+                        patient = Patient(
+                            name=name,
+                            height=height,
+                            pressure=pressure,
+                            glucose=glucose,
+                            age=age
+                        )
+                        patient.save()
+                        message = "✅ Данные сохранены в базу данных"
+                    except IntegrityError:
+                        message = "❌ Такая запись уже есть в базе данных"
+            
             else:
                 message = "❌ Заполните все поля"
         
-        # 2. Загрузка файла
+        # Загрузка файла
         elif 'json_file' in request.FILES:
             uploaded_file = request.FILES['json_file']
-            
             if uploaded_file.name.endswith('.json'):
                 try:
                     file_content = uploaded_file.read().decode('utf-8')
@@ -55,20 +80,90 @@ def home(request):
                     
                     if isinstance(new_patients, list):
                         patients_data.extend(new_patients)
-                        
                         with open(data_file, 'w', encoding='utf-8') as f:
                             json.dump(patients_data, f, ensure_ascii=False, indent=2)
-                        
-                        message = "✅ Файл загружен"
-                    else:
-                        message = "❌ Файл должен содержать список"
-                        
-                except json.JSONDecodeError:
-                    message = "❌ Ошибка в формате JSON"
-            else:
-                message = "❌ Можно загружать только JSON файлы"
+                        message = "✅ Файл загружен в JSON"
+                except:
+                    message = "❌ Ошибка в файле"
+    
+    # 5. Обработка УДАЛЕНИЯ
+    if 'delete_id' in request.GET:
+        try:
+            patient_id = request.GET.get('delete_id')
+            patient = Patient.objects.get(id=patient_id)
+            patient.delete()
+            message = "✅ Пациент удален из базы данных"
+        except:
+            message = "❌ Ошибка при удалении"
+    
+    # 6. Выбор данных для показа
+    data_source = request.GET.get('source', 'json')
+    
+    if data_source == 'db':
+        # Данные из БД
+        patients_to_show = []
+        for patient in db_patients:
+            patients_to_show.append({
+                'id': patient.id,
+                'name': patient.name,
+                'height': patient.height,
+                'pressure': patient.pressure,
+                'glucose': float(patient.glucose),
+                'age': patient.age,
+                'from_db': True
+            })
+    else:
+        # Данные из JSON
+        patients_to_show = patients_data
+        for patient in patients_to_show:
+            patient['from_db'] = False
     
     return render(request, 'home.html', {
         'message': message,
-        'patients': patients_data
+        'patients': patients_to_show,
+        'data_source': data_source
     })
+
+# 7. AJAX поиск
+def search_patients(request):
+    query = request.GET.get('q', '')
+    if query:
+        # Ищем по имени в БД
+        patients = Patient.objects.filter(name__icontains=query)
+        results = []
+        for patient in patients:
+            results.append({
+                'id': patient.id,
+                'name': patient.name,
+                'height': patient.height,
+                'pressure': patient.pressure,
+                'glucose': float(patient.glucose),
+                'age': patient.age
+            })
+        return JsonResponse({'patients': results})
+    return JsonResponse({'patients': []})
+
+# 8. Удаление пациента (AJAX)
+def delete_patient(request, patient_id):
+    if request.method == 'POST':
+        try:
+            patient = get_object_or_404(Patient, id=patient_id)
+            patient.delete()
+            return JsonResponse({'success': True})
+        except:
+            return JsonResponse({'success': False})
+
+# 9. Редактирование пациента
+def update_patient(request, patient_id):
+    if request.method == 'POST':
+        try:
+            patient = get_object_or_404(Patient, id=patient_id)
+            patient.name = request.POST.get('name')
+            patient.height = request.POST.get('height')
+            patient.pressure = request.POST.get('pressure')
+            patient.glucose = request.POST.get('glucose')
+            patient.age = request.POST.get('age')
+            patient.save()
+            return JsonResponse({'success': True})
+        except:
+            return JsonResponse({'success': False})
