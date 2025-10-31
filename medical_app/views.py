@@ -25,7 +25,7 @@ def home(request):
     # 3. Загрузка данных из БД
     db_patients = Patient.objects.all()
     
-    # 4. Обработка СОХРАНЕНИЯ
+    # 4. Обработка СОХРАНЕНИЯ с ПРОВЕРКОЙ ДУБЛИКАТОВ
     if request.method == 'POST':
         if 'name' in request.POST:
             name = request.POST.get('name', '').strip()
@@ -37,23 +37,36 @@ def home(request):
             
             if name and height and pressure and glucose and age:
                 if save_to == 'json':
-                    # Сохраняем в JSON
-                    new_patient = {
-                        'name': name,
-                        'height': height,
-                        'pressure': pressure,
-                        'glucose': glucose,
-                        'age': age
-                    }
-                    patients_data.append(new_patient)
+                    # ПРОВЕРКА ДУБЛИКАТОВ В JSON
+                    is_duplicate = False
+                    for patient in patients_data:
+                        if (patient['name'] == name and 
+                            patient['height'] == height and 
+                            patient['pressure'] == pressure and 
+                            patient['glucose'] == glucose and 
+                            patient['age'] == age):
+                            is_duplicate = True
+                            break
                     
-                    with open(data_file, 'w', encoding='utf-8') as f:
-                        json.dump(patients_data, f, ensure_ascii=False, indent=2)
-                    
-                    message = "✅ Данные сохранены в JSON файл"
+                    if not is_duplicate:
+                        new_patient = {
+                            'name': name,
+                            'height': height,
+                            'pressure': pressure,
+                            'glucose': glucose,
+                            'age': age
+                        }
+                        patients_data.append(new_patient)
+                        
+                        with open(data_file, 'w', encoding='utf-8') as f:
+                            json.dump(patients_data, f, ensure_ascii=False, indent=2)
+                        
+                        message = "✅ Данные сохранены в JSON файл"
+                    else:
+                        message = "❌ Такая запись уже есть в JSON файле"
                 
                 else:
-                    # Сохраняем в БД
+                    # Сохраняем в БД (проверка дубликатов через IntegrityError)
                     try:
                         patient = Patient(
                             name=name,
@@ -86,7 +99,7 @@ def home(request):
                 except:
                     message = "❌ Ошибка в файле"
     
-    # 5. Обработка УДАЛЕНИЯ
+    # 5. Обработка УДАЛЕНИЯ (только для БД)
     if 'delete_id' in request.GET:
         try:
             patient_id = request.GET.get('delete_id')
@@ -124,7 +137,7 @@ def home(request):
         'data_source': data_source
     })
 
-# 7. AJAX поиск
+# 7. AJAX поиск (только по БД)
 def search_patients(request):
     query = request.GET.get('q', '')
     if query:
@@ -143,7 +156,7 @@ def search_patients(request):
         return JsonResponse({'patients': results})
     return JsonResponse({'patients': []})
 
-# 8. Удаление пациента (AJAX)
+# 8. Удаление пациента (AJAX - только для БД)
 def delete_patient(request, patient_id):
     if request.method == 'POST':
         try:
@@ -153,7 +166,7 @@ def delete_patient(request, patient_id):
         except:
             return JsonResponse({'success': False})
 
-# 9. Редактирование пациента
+# 9. Редактирование пациента (только для БД)
 def update_patient(request, patient_id):
     if request.method == 'POST':
         try:

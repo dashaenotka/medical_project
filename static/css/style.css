@@ -4,8 +4,6 @@ body {
     margin: 0 auto;
     padding: 20px;
     background: #f0f8ff;
-    display: flex;
-    flex-direction: column;
     min-height: 100vh;
 }
 
@@ -15,262 +13,22 @@ body {
     border-radius: 15px;
     box-shadow: 0 4px 20px rgba(0,0,0,0.1);
     width: 100%;
-    margin: auto;
+}
+
+/* Убрал flex из body, добавил в container */
+.container {
+    display: flex;
+    flex-direction: column;
 }
 
 h1 {
     color: #2c3e50;
     text-align: center;
     margin-bottom: 30px;
-    font-size: 2.5em;
+    font-size: 2.2em; /* Немного уменьшил */
 }
 
-h2 {
-    color: #34495e;
-    border-bottom: 2px solid #3498db;
-    padding-bottom: 10px;
-    text-align: center;
-}
-
-h4 {
-    color: #2c3e50;
-    text-align: center;
-    margin-bottom: 15px;
-}
-
-.form-group {
-    margin-bottom: 20px;
-}
-
-label {
-    display: block;
-    margin-bottom: 8px;
-    font-weight: bold;
-    color: #2c3e50;
-    font-size: 1.1em;
-}
-
-input[type="text"],
-input[type="number"],
-input[type="file"] {
-    width: 100%;
-    padding: 12px;
-    border: 2px solid #ddd;
-    border-radius: 8px;
-    box-sizing: border-box;
-    font-size: 16px;
-    transition: border-color 0.3s;
-}
-
-input[type="text"]:focus,
-input[type="number"]:focus {
-    border-color: #3498db;
-    outline: none;
-    box-shadow: 0 0 5px rgba(52, 152, 219, 0.3);
-}
-
-/* Стили для радиокнопок */
-.radio-group {
-    display: flex;
-    gap: 20px;
-    margin-top: 10px;
-}
-
-.radio-option {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 10px 15px;
-    border: 2px solid #ddd;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.3s;
-    flex: 1;
-}
-
-.radio-option:hover {
-    border-color: #3498db;
-    background: #f8f9fa;
-}
-
-.radio-option input[type="radio"] {
-    width: auto;
-    margin: 0;
-}
-
-.radio-option label {
-    margin: 0;
-    cursor: pointer;
-    font-weight: normal;
-}
-
-/* Основные кнопки */
-.btn-primary {
-    background: linear-gradient(135deg, #3498db, #2980b9);
-    color: white;
-    padding: 15px;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    width: 100%;
-    font-size: 18px;
-    margin-top: 20px;
-    transition: all 0.3s;
-    font-weight: bold;
-}
-
-.btn-primary:hover {
-    background: linear-gradient(135deg, #2980b9, #1f6397);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 15px rgba(52, 152, 219, 0.4);
-}
-
-/* Кнопка загрузки файла */
-.btn-secondary {
-    background: linear-gradient(135deg, #e67e22, #d35400);
-    color: white;
-    padding: 12px;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    width: 100%;
-    font-size: 16px;
-    margin-top: 15px;
-    transition: all 0.3s;
-}
-
-.btn-secondary:hover {
-    background: linear-gradient(135deg, #d35400, #ba4a00);
-    transform: translateY(-2px);
-}
-
-/* Кнопки переключения источников */
-.source-buttons {
-    text-align: center;
-    margin: 30px 0;
-    padding: 20px;
-    background: #ecf0f1;
-    border-radius: 10px;
-}
-
-.btn-source {
-    padding: 12px 25px;
-    margin: 0 10px;
-    border: 2px solid;
-    border-radius: 25px;
-    text-decoration: none;
-    font-weight: bold;
-    transition: all 0.3s;
-    display: inline-block;
-}
-
-.btn-json {
-    background: white;
-    color: #27ae60;
-    border-color: #27ae60;
-}
-
-.btn-json:hover,
-.btn-json.active {
-    background: #27ae60;
-    color: white;
-}
-
-.btn-db {
-    background: white;
-    color: #3498db;
-    border-color: #3498db;
-}
-
-.btn-db:hover,
-.btn-db.active {
-    background: #3498db;
-    color: white;
-}
-
-.current-source {
-    margin-top: 15px;
-    color: #7f8c8d;
-    font-size: 0.9em;
-}
-
-.current-source strong {
-    color: #2c3e50;
-}
-
-/* Сообщения */
-.message {
-    padding: 15px;
-    border-radius: 8px;
-    margin: 20px 0;
-    text-align: center;
-    font-weight: bold;
-    font-size: 1.1em;
-}
-
-.message.success {
-    background: #d4edda;
-    color: #155724;
-    border: 1px solid #c3e6cb;
-}
-
-.message.error {
-    background: #f8d7da;
-    color: #721c24;
-    border: 1px solid #f5c6cb;
-}
-
-/* Список пациентов */
-.patients-list {
-    margin-top: 30px;
-}
-
-.patient-item {
-    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
-    padding: 20px;
-    margin: 15px 0;
-    border-radius: 10px;
-    border-left: 5px solid #27ae60;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    transition: transform 0.3s;
-}
-
-.patient-item:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
-}
-
-.patient-item h3 {
-    color: #2c3e50;
-    margin: 0 0 15px 0;
-    font-size: 1.3em;
-}
-
-.patient-item ul {
-    margin: 0;
-    padding-left: 0;
-    list-style: none;
-}
-
-.patient-item li {
-    margin-bottom: 8px;
-    color: #555;
-    padding: 5px 0;
-    border-bottom: 1px solid #eee;
-}
-
-.patient-item li:last-child {
-    border-bottom: none;
-}
-
-.source-info {
-    font-style: italic;
-    color: #7f8c8d !important;
-    font-size: 0.9em;
-    margin-top: 10px !important;
-}
-
-/* Кнопки действий для пациентов из БД */
+/* Улучшил кнопки действий */
 .patient-actions {
     margin-top: 15px;
     display: flex;
@@ -279,125 +37,44 @@ input[type="number"]:focus {
 }
 
 .btn-delete, .btn-edit {
-    padding: 8px 16px;
+    padding: 8px 12px; /* Уменьшил padding */
     border: none;
     border-radius: 6px;
     cursor: pointer;
-    font-size: 14px;
+    font-size: 13px; /* Уменьшил шрифт */
     font-weight: bold;
     transition: all 0.3s;
     flex: 1;
-    min-width: 120px;
+    min-width: 100px; /* Уменьшил минимальную ширину */
 }
 
-.btn-delete {
-    background: linear-gradient(135deg, #e74c3c, #c0392b);
-    color: white;
-}
-
-.btn-edit {
-    background: linear-gradient(135deg, #f39c12, #e67e22);
-    color: white;
-}
-
-.btn-delete:hover {
-    background: linear-gradient(135deg, #c0392b, #a93226);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 10px rgba(231, 76, 60, 0.3);
-}
-
-.btn-edit:hover {
-    background: linear-gradient(135deg, #e67e22, #d35400);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 10px rgba(243, 156, 18, 0.3);
-}
-
-/* Стили для поиска */
-.search-container {
-    background: #ecf0f1;
-    padding: 20px;
-    border-radius: 10px;
-    margin: 20px 0;
-}
-
-.search-input {
-    width: 100%;
-    padding: 12px;
-    border: 2px solid #bdc3c7;
-    border-radius: 8px;
-    font-size: 16px;
-    margin-bottom: 10px;
-}
-
-.search-input:focus {
-    border-color: #3498db;
-    outline: none;
-    box-shadow: 0 0 5px rgba(52, 152, 219, 0.3);
-}
-
-.search-results {
-    max-height: 300px;
-    overflow-y: auto;
+/* Добавил стили для поисковых результатов */
+#searchResults {
     border: 1px solid #bdc3c7;
     border-radius: 8px;
     background: white;
+    max-height: 300px;
+    overflow-y: auto;
 }
 
-.search-result-item {
+#searchResults .patient-item {
+    margin: 10px;
     padding: 15px;
-    border-bottom: 1px solid #ecf0f1;
-    transition: background-color 0.3s;
+    border-left: 4px solid #3498db;
 }
 
-.search-result-item:hover {
-    background-color: #f8f9fa;
-}
-
-.search-result-item:last-child {
-    border-bottom: none;
-}
-
-/* Сообщение когда нет пациентов */
-.no-patients {
-    text-align: center;
-    padding: 40px;
-    background: #ecf0f1;
-    border-radius: 10px;
-    color: #7f8c8d;
-    font-size: 1.1em;
-}
-
-/* Разделители */
-hr {
-    border: none;
-    border-top: 3px solid #bdc3c7;
-    margin: 40px 0;
-    opacity: 0.6;
-}
-
-/* Адаптивность */
+/* Улучшил адаптивность */
 @media (max-width: 768px) {
     body {
         padding: 10px;
     }
     
     .container {
-        padding: 20px;
+        padding: 20px 15px;
     }
     
-    .radio-group {
-        flex-direction: column;
-        gap: 10px;
-    }
-    
-    .btn-source {
-        display: block;
-        margin: 10px 0;
-        width: 100%;
-    }
-    
-    .source-buttons {
-        padding: 15px;
+    h1 {
+        font-size: 1.8em;
     }
     
     .patient-actions {
@@ -406,61 +83,34 @@ hr {
     
     .btn-delete, .btn-edit {
         min-width: auto;
+        width: 100%;
+    }
+    
+    .radio-group {
+        flex-direction: column;
+        gap: 10px;
     }
 }
 
-/* Анимации */
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
+/* Добавил анимацию для сообщений */
+.message {
+    animation: fadeIn 0.5s ease-out;
 }
 
-.container {
-    animation: fadeIn 0.6s ease-out;
+/* Улучшил hover эффекты */
+.btn-primary:hover, 
+.btn-secondary:hover,
+.btn-delete:hover,
+.btn-edit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
 
-.patient-item {
-    animation: fadeIn 0.4s ease-out;
+/* Упростил градиенты для лучшей производительности */
+.btn-primary {
+    background: #3498db;
 }
 
-.search-result-item {
-    animation: fadeIn 0.3s ease-out;
-}
-
-/* Стили для модального окна редактирования */
-.edit-modal {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0,0,0,0.5);
-    z-index: 1000;
-}
-
-.edit-modal-content {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: white;
-    padding: 30px;
-    border-radius: 15px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-    width: 90%;
-    max-width: 500px;
-}
-
-.close-button {
-    position: absolute;
-    top: 15px;
-    right: 15px;
-    font-size: 24px;
-    cursor: pointer;
-    color: #7f8c8d;
-}
-
-.close-button:hover {
-    color: #34495e;
+.btn-primary:hover {
+    background: #2980b9;
 }
